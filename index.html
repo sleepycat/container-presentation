@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Template</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1,width=device-width"
+    />
+    <link rel="stylesheet" type="text/css" href="./css/typo.css" />
+    <link rel="stylesheet" type="text/css" href="./css/nord-dark.css" />
+    <link rel="stylesheet" type="text/css" href="./css/font-nord.css" />
+    <link rel="stylesheet" type="text/css" href="./css/bg-nord.css" />
+    <link rel="stylesheet" type="text/css" href="./css/style.css" />
+  </head>
+  <body>
+    <textarea id="source">
+
+count: false
+class: nord-dark, center, middle
+
+.logo[![](images/docker-logo.svg)]
+# Grokking containers
+
+---
+class: nord-dark, left, middle
+
+## Docker built a nice DX around Linux Kernel features
+
+* Namespaces
+* Cgroups
+* OverlayFS
+
+???
+https://blog.scottlowe.org/2013/09/04/introducing-linux-network-namespaces/
+http://man7.org/linux/man-pages/man7/mount_namespaces.7.html
+http://man7.org/linux/man-pages/man7/sysvipc.7.html
+https://www.researchgate.net/profile/Roberto_Pietro/publication/309965523_To_Docker_or_Not_to_Docker_A_Security_Perspective/links/5bd2f7c1a6fdcc3a8da6c537/To-Docker-or-Not-to-Docker-A-Security-Perspective.pdf
+https://lwn.net/Articles/531114/
+http://karelzak.blogspot.com/2009/12/unshare1.html
+
+---
+
+class: nord-dark, left, middle
+
+##$> man 7 namespaces
+
+>A namespace wraps a global system resource in an abstraction that makes it appear to the processes within the namespace that they have their own isolated instance of the global resource. Changes to the global resource are visible to other processes that are members of the namespace, but are invisible to other processes.
+
+---
+class: nord-dark, left, middle
+
+### A "global system resource": Hostname
+
+There is just one for the whole system!
+
+---
+
+class: nord-dark, left, middle
+
+### A "global system resource": Hostname
+
+Let's give a process it's "own isolated instance of the global resource".
+
+---
+
+class: nord-dark, center, middle, terminal
+
+Changing hostname within a namespace
+
+![uts-namespace](images/uts-namespace.svg)
+
+---
+
+class: nord-dark, left, middle
+
+### 7 global resources
+
+* uts: hostname
+* user: user and group numbers
+* net: network devices
+* pid: process numbers (process id)
+* mnt: mount point numbers (mount id)
+* ipc: message queue numbers (msqid), semaphore set ids (semid), shared memory segment ids (shmid)
+* cgroups: visibility into group membership
+
+---
+
+class: nord-dark, left, middle
+
+### Another "global system resource": Process IDs
+
+* ID must be unique!
+* A single pool starting at 0 ending at 4194304 (cat /proc/sys/kernel/pid_max)
+* Each new process increments the number
+* Wraps when it runs out
+
+---
+
+class: nord-dark, left, middle
+
+### Process IDs: A process only sees pids in the same namespace
+
+---
+
+class: nord-dark, center, middle, terminal
+
+The htop process monitor showing what's visible in it's namespace
+
+![pid-namespace](images/namespace.svg)
+
+---
+
+class: nord-dark, left, middle
+
+### Process IDs: Adding new processes to existing namespaces
+
+---
+
+class: nord-dark, center, middle, terminal
+
+Launching a process into an existing namespace
+
+![pid-namespace](images/namespace-nsenter.svg)
+
+---
+
+class: nord-dark, left, middle
+
+## Namespaces: The important parts
+
+* The Linux Kernel makes it "appear to the processes within the namespace that they have their own isolated instance of the global resource"
+* Processes can be given their own "isolated instance" of each "global resource", separately or together.
+* Giving a process an "isolated instance" of every "global resource" is indistinguishable (to the process) from having a machine to itself.
+* This is called "OS-level" virtualization
+
+---
+
+class: nord-dark, left, middle
+
+## OverlayFS
+
+* Built into the kernel back in 2014
+* Can “present a filesystem which is the result over overlaying one filesystem on top of the other.”
+
+---
+class: nord-dark, left, middle
+
+### OverlayFS: overlaying one filesystem on top of another
+
+```bash
+$ tree
+.
+├── a
+│   └── a.txt
+├── b
+│   └── b.txt
+├── c
+│   └── c.txt
+├── everything
+└── workdir
+
+5 directories, 3 files
+```
+
+---
+
+class: nord-dark, left, middle
+
+### OverlayFS: overlaying one filesystem on top of another
+
+```bash
+$ sudo mount -t overlay -o lowerdir=a:b:c none everything
+$ tree --inodes
+.
+├── [12459521]  a
+│   └── [12459522]  a.txt
+├── [12459523]  b
+│   └── [12459524]  b.txt
+├── [12459525]  c
+│   └── [12459526]  c.txt
+├── [12459521]  everything
+│   ├── [12459522]  a.txt
+│   ├── [12459524]  b.txt
+│   └── [12459526]  c.txt
+└── [12459527]  workdir
+
+5 directories, 6 files
+```
+
+---
+class: nord-dark, left, middle
+
+## Docker: Namespacing and OverlayFS in action
+
+---
+
+class: nord-dark, left, middle
+
+```bash
+$ docker pull ubuntu
+Using default tag: latest
+latest: Pulling from library/ubuntu
+5bed26d33875: Pull complete
+f11b29a9c730: Pull complete
+930bda195c84: Pull complete
+78bf9a5ad49e: Pull complete
+Digest: sha256:bec5a2727be7fff3d308193cfde3491f8fba1a2ba392b7546b43a051853a341d
+Status: Downloaded newer image for ubuntu:latest
+docker.io/library/ubuntu:latest
+
+$ docker run -it ubuntu bash
+root@317daf9c9698:/# cat /etc/issue
+Ubuntu 18.04.4 LTS \n \l
+
+root@317daf9c9698:/# ls
+bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+```
+
+---
+
+class: nord-dark, left, middle
+
+## Digging deeper
+
+* Building a container from scratch in Go - Liz Rice https://youtu.be/Utf-A4rODH8
+
+---
+
+class: nord-dark, left, middle
+
+## Why this stuff matters
+
+* Solves "it worked on my machine"
+* dev/test/prod is just `docker run myimage:v2`
+* Scaling is `docker run myimage:v2` x 2
+* Rollback is `docker run myimage:v1`
+* Patching is `docker build -t myimage:v3 .`
+* Death to build books ☠️
+
+---
+class: nord-dark, left, middle
+
+## Security implications
+
+* Slimmer servers: Sliver of Linux + Docker. Done.
+* Simpler servers: simple enough for automated patching
+* Image building (additive) > hardening (subtractive)
+
+```bash
+$ docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+alpine              latest              a187dde48cd2        2 hours ago         5.6MB
+ubuntu              latest              4e5021d210f6        3 days ago          64.2MB
+debian              latest              971452c94376        3 weeks ago         114MB
+fedora              latest              536f3995adeb        4 weeks ago         193MB
+centos              latest              470671670cac        2 months ago        237MB
+```
+
+---
+
+class: nord-dark, center, middle
+
+## But who's doing all the pushing, pulling and running?
+
+---
+
+class: nord-dark, center, middle
+
+.logo[![](images/kubernetes-logo.svg)]
+
+## Kubernetes
+
+---
+
+class: nord-dark, center, middle
+
+### The Pod: the "unit of deployment"
+
+.logo[![](images/kubernetes-pod.svg)]
+
+---
+class: nord-dark, center, middle
+
+### The Pod: the "unit of deployment"
+
+.logo[![](images/kubernetes-pod-two-process.svg)]
+
+---
+
+class: nord-dark, center, middle
+
+### The worker
+
+.logo[![](images/kubernetes-worker.svg)]
+
+---
+
+class: nord-dark, center, middle
+
+### The cluster: n workers + master(s)
+
+.xxl[![](images/kubernetes-cluster.svg)]
+
+---
+
+class: nord-dark, left, middle
+
+### Minimum Viable Kubernetes
+
+```bash
+# create a cluster
+$ gcloud container clusters create --region=northamerica-northeast1 \
+  --num-nodes=1 --image-type=COS_CONTAINERD --enable-autoupgrade \
+	--enable-autorepair --machine-type=g1-small helloworld
+
+# Run an image:
+$ kubectl run helloworld --image mikewilliamson/helloworld --port 3000
+
+# Expose it's port to the internet as port 80
+$ kubectl expose deployment helloworld --type LoadBalancer --port 80 --target-port 3000
+```
+
+---
+
+class: nord-dark, left, middle
+
+### Minimum Viable Kubernetes: the result
+
+```bash
+$ kubectl get service
+NAME         TYPE           CLUSTER-IP   EXTERNAL-IP     PORT(S)        AGE
+helloworld   LoadBalancer   10.0.5.175   35.203.83.162   80:31899/TCP   95m
+kubernetes   ClusterIP      10.0.0.1     <none>          443/TCP        109m
+
+$ curl 35.203.83.162
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name="theme-color" content="#000000"><link rel="manifest" href="/manifest.json"><link rel="shortcut icon" href="/favicon.ico"><title>React App</title><link href="/static/css/main.c17080f1.css" rel="stylesheet"></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div><script type="text/javascript" src="/static/js/main.61911c33.js"></script></body></html>
+```
+
+---
+
+
+class: nord-dark, left, middle
+
+### Minimum Viable Kubernetes: what's missing
+
+* Imperative: `run`, `expose`... we're telling kubernetes how to do it's job
+* Reproducible: How long would it take to rebuild a bit-for-bit copy from scratch?
+* Versioned: Describe your system in code, version that code in git: Versioned systems.
+* Machine readable: Can others programmatically inspect your system?
+---
+
+class: nord-dark, left, middle
+### Kubernetes for reals
+
+---
+class: nord-dark, left, middle
+
+```bash
+# kubectl create --dry-run deployment --image mikewilliamson/helloworld helloworld -o yaml > deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: helloworld
+  name: helloworld
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: helloworld
+  template:
+    metadata:
+      labels:
+        app: helloworld
+    spec:
+      containers:
+      - image: mikewilliamson/helloworld
+        name: helloworld
+```
+
+    </textarea>
+
+    <script src="js/remark.min.js"></script>
+    <script>
+      var targetTextArea = document.getElementById("source");
+      var lines = targetTextArea.innerHTML.split("\n");
+      targetTextArea.innerHTML = lines.map(line => line.replace(/^(?!\s+[\-|0-9])\s+/, "")).join("\n");
+
+      var slideshow = remark.create({
+        ratio: "16:9", // window ratio
+        // arta, ascetic, dark, default, far, github, googlecode, idea,
+        // ir-black, magula, monokai, rainbow, solarized-dark, solarized-light,
+        // sunburst, tomorrow, tomorrow-night-blue, tomorrow-night-bright,
+        // tomorrow-night, tomorrow-night-eighties, vs, zenburn.
+        highlightStyle: "github",
+        highlightLines: true,
+        countIncrementalSlides: false, // whether the incremental content count as one page
+        //slideNumberFormat: "", // If this parameter is set to "", the page number is not displayed
+        navigation: {
+          scroll: false, // Page turning with mouse wheel is allowed
+          touch: true, // Is it allowed to scroll back and forth by clicking on the left or right side of the screen
+          click: false // Allow the mouse to click on the left or right side of the screen to turn back and forth
+        }
+      });
+
+
+      function isFullScreen() {
+        return window.fullScreen || (window.innerWidth == screen.width && window.innerHeight == screen.height);
+      }
+
+      window.addEventListener("resize", () => {
+        if (isFullScreen()) {
+          document.body.style["background-color"] = "#000";
+        } else {
+          document.body.style["background-color"] = "#d7d8d2";
+        }
+      });
+
+
+    </script>
+  </body>
+</html>
