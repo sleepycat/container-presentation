@@ -16,13 +16,14 @@
   <body>
     <textarea id="source">
 
-count: false
+
 class: nord-dark, center, middle
 
 .logo[![](images/docker-logo.svg)]
 # Grokking containers
 
 ---
+
 class: nord-dark, left, middle
 
 ## Docker built a nice DX around Linux Kernel features
@@ -43,7 +44,7 @@ http://karelzak.blogspot.com/2009/12/unshare1.html
 
 class: nord-dark, left, middle
 
-##$> man 7 namespaces
+#### $> man 7 namespaces
 
 >A namespace wraps a global system resource in an abstraction that makes it appear to the processes within the namespace that they have their own isolated instance of the global resource. Changes to the global resource are visible to other processes that are members of the namespace, but are invisible to other processes.
 
@@ -171,24 +172,26 @@ class: nord-dark, left, middle
 
 ```bash
 $ sudo mount -t overlay -o lowerdir=a:b:c none everything
-$ tree --inodes
+[sudo] password for mike:
+$ tree
 .
-├── [12459521]  a
-│   └── [12459522]  a.txt
-├── [12459523]  b
-│   └── [12459524]  b.txt
-├── [12459525]  c
-│   └── [12459526]  c.txt
-├── [12459521]  everything
-│   ├── [12459522]  a.txt
-│   ├── [12459524]  b.txt
-│   └── [12459526]  c.txt
-└── [12459527]  workdir
+├── a
+│   └── a.txt
+├── b
+│   └── b.txt
+├── c
+│   └── c.txt
+├── everything
+│   ├── a.txt
+│   ├── b.txt
+│   └── c.txt
+└── workdir
 
 5 directories, 6 files
 ```
 
 ---
+
 class: nord-dark, left, middle
 
 ## Docker: Namespacing and OverlayFS in action
@@ -209,12 +212,14 @@ Digest: sha256:bec5a2727be7fff3d308193cfde3491f8fba1a2ba392b7546b43a051853a341d
 Status: Downloaded newer image for ubuntu:latest
 docker.io/library/ubuntu:latest
 
-$ docker run -it ubuntu bash
-root@317daf9c9698:/# cat /etc/issue
-Ubuntu 18.04.4 LTS \n \l
-
-root@317daf9c9698:/# ls
+$ docker run -it ubuntu
+root@f0e2650b7332:/# ps
+    PID TTY          TIME CMD
+      1 pts/0    00:00:00 bash
+     10 pts/0    00:00:00 ps
+root@f0e2650b7332:/# ls
 bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+
 ```
 
 ---
@@ -224,6 +229,7 @@ class: nord-dark, left, middle
 ## Digging deeper
 
 * Building a container from scratch in Go - Liz Rice https://youtu.be/Utf-A4rODH8
+* Cgroups, namespaces, and beyond: what are containers made from? - Jérôme Petazzoni https://youtu.be/sK5i-N34im8
 
 ---
 
@@ -231,8 +237,9 @@ class: nord-dark, left, middle
 
 ## Why this stuff matters
 
-* Solves "it worked on my machine"
+* A single *portable* artifact for app + dependencies
 * dev/test/prod is just `docker run myimage:v2`
+* AWS/Azure/GCP is just `docker run myimage:v2`
 * Scaling is `docker run myimage:v2` x 2
 * Rollback is `docker run myimage:v1`
 * Patching is `docker build -t myimage:v3 .`
@@ -243,8 +250,8 @@ class: nord-dark, left, middle
 
 ## Security implications
 
-* Slimmer servers: Sliver of Linux + Docker. Done.
-* Simpler servers: simple enough for automated patching
+* Slimmer servers are safer servers: Less code, fewer vulns
+* Simpler servers are automatable servers: simple enough for automated patching
 * Image building (additive) > hardening (subtractive)
 
 ```bash
@@ -261,7 +268,7 @@ centos              latest              470671670cac        2 months ago        
 
 class: nord-dark, center, middle
 
-## But who's doing all the pushing, pulling and running?
+## But who's doing all the pulling and running?
 
 ---
 
@@ -306,6 +313,12 @@ class: nord-dark, center, middle
 
 class: nord-dark, left, middle
 
+### OK, but how?
+
+---
+
+class: nord-dark, left, middle
+
 ### Minimum Viable Kubernetes
 
 ```bash
@@ -339,45 +352,143 @@ $ curl 35.203.83.162
 
 ---
 
-
 class: nord-dark, left, middle
 
-### Minimum Viable Kubernetes: what's missing
+### Minimum Viable Kubernetes: what's wrong with that?
 
 * Imperative: `run`, `expose`... we're telling kubernetes how to do it's job
-* Reproducible: How long would it take to rebuild a bit-for-bit copy from scratch?
-* Versioned: Describe your system in code, version that code in git: Versioned systems.
-* Machine readable: Can others programmatically inspect your system?
+* Not Code: System state is the sum of the commands people ran (which are?)
+
 ---
 
 class: nord-dark, left, middle
 ### Kubernetes for reals
 
----
-class: nord-dark, left, middle
+* Declarative: Tell Kubernetes what we want, our "desired state"
+* Captured in code: Describe your system in code, version that code in git.
 
 ```bash
-# kubectl create --dry-run deployment --image mikewilliamson/helloworld helloworld -o yaml > deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: helloworld
-  name: helloworld
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: helloworld
-  template:
-    metadata:
-      labels:
-        app: helloworld
-    spec:
-      containers:
-      - image: mikewilliamson/helloworld
-        name: helloworld
+# Imperative: issue a command
+kubectl run helloworld --image mikewilliamson/helloworld --port 3000
+kubectl expose deployment helloworld --type LoadBalancer --port 80 --target-port 3000
+
+# Declarative: write config files stating what you want.
+kubectl create --dry-run deployment --image mikewilliamson/helloworld helloworld -o yaml > deployment.yaml
+kubectl create service loadbalancer helloworld --tcp=80:3000 --dry-run -o yaml > service.yaml
+# Version them in git, make sure Kubernetes has the latest version.
+kubectl apply -f .
 ```
+
+---
+class: nord-dark, middle, left
+
+```yaml
+aapiversion: apps/v1
+akind: deployment
+ametadata:
+a  labels:
+a    app: helloworld
+a  name: helloworld
+aspec:
+a  replicas: 1
+a  selector:
+a    matchlabels:
+a      app: helloworld
+a  template:
+a    metadata:
+a      labels:
+a        app: helloworld
+a    spec:
+a      containers:
+a      - image: mikewilliamson/helloworld
+a        name: helloworld
+```
+
+---
+
+class: nord-dark, middle, left
+
+```yaml
+aapiVersion: v1
+akind: Service
+ametadata:
+a  labels:
+a    app: helloworld
+a  name: helloworld
+aspec:
+a  ports:
+a  - name: 80-3000
+a    port: 80
+a    protocol: TCP
+a    targetPort: 3000
+a  selector:
+a    app: helloworld
+a  type: LoadBalancer
+astatus:
+a  loadBalancer: {}
+```
+---
+
+class: nord-dark, middle, center
+
+.logo[![](images/maple-leaf.svg)]
+
+## Let's talk containers!
+
+---
+
+class: nord-dark, middle, left
+
+## TBS has lots to say about containers!
+
+---
+
+class: nord-dark, middle, left
+
+#### Directive on Management of Information Technology
+##### Mandatory Procedures for Enterprise Architecture Assessment
+
+
+### C.2.3.10.1 Expose all functionality as services
+
+---
+
+class: nord-dark, middle, left
+
+#### Directive on Management of Information Technology
+##### Mandatory Procedures for Enterprise Architecture Assessment
+
+### C.2.3.10.2 Use microservices built around business capabilities
+
+---
+
+class: nord-dark, middle, left
+
+#### Directive on Management of Information Technology
+##### Mandatory Procedures for Enterprise Architecture Assessment
+
+### C.2.3.10.3 Run each IT service in its own process
+
+---
+
+class: nord-dark, middle, left
+
+#### Directive on Management of Information Technology
+##### Mandatory Procedures for Enterprise Architecture Assessment
+
+### C.2.3.10.4 Run applications in containers
+
+---
+
+
+class: nord-dark, middle, left
+
+#### Directive on Management of Information Technology
+##### Mandatory Procedures for Enterprise Architecture Assessment
+
+### C.2.3.10.4 Run applications in containers
+
+---
 
     </textarea>
 
