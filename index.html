@@ -354,6 +354,14 @@ $ kubectl expose deployment helloworld --type LoadBalancer --port 80 --target-po
 
 ---
 
+class: nord-dark, center, middle
+
+### Minimum Viable Kubernetes: the result
+
+.k8slb[![](images/kubernetes-with-load-balancer.svg)]
+
+---
+
 class: nord-dark, left, middle
 
 ### Minimum Viable Kubernetes: the result
@@ -377,11 +385,11 @@ class: nord-dark, left, middle
 * Captured in code: Describe your system in code, version that code in git.
 
 ```bash
-# Imperative: issue a command
+# Imperative: ☹
 kubectl run helloworld --image mikewilliamson/helloworld --port 3000
 kubectl expose deployment helloworld --type LoadBalancer --port 80 --target-port 3000
 
-# Declarative: write config files stating what you want.
+# Declarative: 😀
 kubectl create --dry-run deployment --image mikewilliamson/helloworld helloworld -o yaml > deployment.yaml
 kubectl create service loadbalancer helloworld --tcp=80:3000 --dry-run -o yaml > service.yaml
 # Version them in git, make sure Kubernetes has the latest version.
