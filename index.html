@@ -26,6 +26,27 @@ class: nord-dark, center, middle
 
 class: nord-dark, left, middle
 
+## Why Docker?
+
+* A single *portable* artifact for app + dependencies
+* Portable across dev/test/prod
+* Portable across AWS/Azure/GCP/Everyone else
+* Portable within AWS/Azure/GCP
+* Death to build books ☠️
+
+---
+
+class: nord-dark, middle, left
+
+#### Directive on Management of Information Technology
+##### Mandatory Procedures for Enterprise Architecture Assessment
+
+### C.2.3.10.4 Run applications in containers
+
+---
+
+class: nord-dark, left, middle
+
 ## Docker built a nice DX around Linux Kernel features
 
 * Namespaces
@@ -233,42 +254,10 @@ class: nord-dark, left, middle
 
 ---
 
-class: nord-dark, left, middle
-
-## Why this stuff matters
-
-* A single *portable* artifact for app + dependencies
-* dev/test/prod is just `docker run myimage:v2`
-* AWS/Azure/GCP is just `docker run myimage:v2`
-* Scaling is `docker run myimage:v2` x 2
-* Rollback is `docker run myimage:v1`
-* Patching is `docker build -t myimage:v3 .`
-* Death to build books ☠️
-
----
-class: nord-dark, left, middle
-
-## Security implications
-
-* Slimmer servers are safer servers: Less code, fewer vulns
-* Simpler servers are automatable servers: simple enough for automated patching
-* Image building (additive) > hardening (subtractive)
-
-```bash
-$ docker images
-REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
-alpine              latest              a187dde48cd2        2 hours ago         5.6MB
-ubuntu              latest              4e5021d210f6        3 days ago          64.2MB
-debian              latest              971452c94376        3 weeks ago         114MB
-fedora              latest              536f3995adeb        4 weeks ago         193MB
-centos              latest              470671670cac        2 months ago        237MB
-```
-
----
 
 class: nord-dark, center, middle
 
-## But who's doing all the pulling and running?
+## What about deployment?
 
 ---
 
@@ -277,6 +266,18 @@ class: nord-dark, center, middle
 .logo[![](images/kubernetes-logo.svg)]
 
 ## Kubernetes
+
+---
+
+class: nord-dark, left, middle
+
+### Why Kubernetes?
+
+* A single skillset across VM's (Kubevirt), serverless (Kubeless, Knative) & containers
+* A single skillset across all major cloud providers and on-prem
+* A single skillset across simple (monolithic) and complex (microservices) deployments
+* Minimize cloud vendor lock-in
+* Infinite loop: acts to make what's in your config true
 
 ---
 
@@ -305,9 +306,26 @@ class: nord-dark, center, middle
 
 class: nord-dark, center, middle
 
-### The cluster: n workers + master(s)
+### The cluster: n workers + master
 
 .xxl[![](images/kubernetes-cluster.svg)]
+
+---
+class: nord-dark, center, middle
+
+### The cluster: n workers + multi-master
+
+.xxl[![](images/kubernetes-multi-master-cluster.svg)]
+
+---
+
+class: nord-dark, middle, left
+
+#### Directive on Management of Information Technology
+##### Mandatory Procedures for Enterprise Architecture Assessment
+
+
+### C.2.3.12.4 Use distributed architectures
 
 ---
 
@@ -349,15 +367,6 @@ kubernetes   ClusterIP      10.0.0.1     <none>          443/TCP        109m
 $ curl 35.203.83.162
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name="theme-color" content="#000000"><link rel="manifest" href="/manifest.json"><link rel="shortcut icon" href="/favicon.ico"><title>React App</title><link href="/static/css/main.c17080f1.css" rel="stylesheet"></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div><script type="text/javascript" src="/static/js/main.61911c33.js"></script></body></html>
 ```
-
----
-
-class: nord-dark, left, middle
-
-### Minimum Viable Kubernetes: what's wrong with that?
-
-* Imperative: `run`, `expose`... we're telling kubernetes how to do it's job
-* Not Code: System state is the sum of the commands people ran (which are?)
 
 ---
 
@@ -429,66 +438,53 @@ a  loadBalancer: {}
 ```
 ---
 
+class: nord-dark, left, middle
+
+## Why this stuff matters
+
+* dev/test/prod is just `kubectl apply`
+* AWS/Azure/GCP is just `kubectl apply`
+* Basic Scaling: `replicas: 1` > `replicas: 2`
+* Advanced Scaling: dynamic infrastructure
+* Self healing: always drive towards "desired state"
+* Rollback: `myimage:v2` > `myimage:v1`
+* Patch:    `myimage:v2` > `myimage:v3`
+* Deploy:   `myimage:v3` > `myimage:v4`
+
+---
+
+class: nord-dark, left, middle
+
+## Security implications
+
+* Slimmer servers: Less code, fewer vulns
+* Image building (additive) > hardening (subtractive)
+
+```bash
+$ docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+alpine              latest              a187dde48cd2        2 hours ago         5.6MB
+ubuntu              latest              4e5021d210f6        3 days ago          64.2MB
+debian              latest              971452c94376        3 weeks ago         114MB
+fedora              latest              536f3995adeb        4 weeks ago         193MB
+centos              latest              470671670cac        2 months ago        237MB
+```
+
+---
+
+class: nord-dark, center, middle, terminal
+
+## Security implications
+
+![](images/kiali-e2e.gif)
+
+---
+
 class: nord-dark, middle, center
 
-.logo[![](images/maple-leaf.svg)]
-
-## Let's talk containers!
-
----
-
-class: nord-dark, middle, left
-
-## TBS has lots to say about containers!
-
----
-
-class: nord-dark, middle, left
-
-#### Directive on Management of Information Technology
-##### Mandatory Procedures for Enterprise Architecture Assessment
+## Fin
 
 
-### C.2.3.10.1 Expose all functionality as services
-
----
-
-class: nord-dark, middle, left
-
-#### Directive on Management of Information Technology
-##### Mandatory Procedures for Enterprise Architecture Assessment
-
-### C.2.3.10.2 Use microservices built around business capabilities
-
----
-
-class: nord-dark, middle, left
-
-#### Directive on Management of Information Technology
-##### Mandatory Procedures for Enterprise Architecture Assessment
-
-### C.2.3.10.3 Run each IT service in its own process
-
----
-
-class: nord-dark, middle, left
-
-#### Directive on Management of Information Technology
-##### Mandatory Procedures for Enterprise Architecture Assessment
-
-### C.2.3.10.4 Run applications in containers
-
----
-
-
-class: nord-dark, middle, left
-
-#### Directive on Management of Information Technology
-##### Mandatory Procedures for Enterprise Architecture Assessment
-
-### C.2.3.10.4 Run applications in containers
-
----
 
     </textarea>
 
