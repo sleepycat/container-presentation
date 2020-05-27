@@ -38,10 +38,10 @@ class: nord-dark, left, middle
 
 class: nord-dark, middle, left
 
-#### Directive on Management of Information Technology
+#### Directive on Service and Digital
 ##### Mandatory Procedures for Enterprise Architecture Assessment
 
-### C.2.3.10.4 Run applications in containers
+### A.2.3.10.4 Run applications in containers
 
 ---
 
@@ -96,7 +96,7 @@ Changing hostname within a namespace
 
 class: nord-dark, left, middle
 
-### 7 global resources
+### 8 global resources
 
 * uts: hostname
 * user: user and group numbers
@@ -105,6 +105,7 @@ class: nord-dark, left, middle
 * mnt: mount point numbers (mount id)
 * ipc: message queue numbers (msqid), semaphore set ids (semid), shared memory segment ids (shmid)
 * cgroups: visibility into group membership
+* time: ability to set CLOCK_MONOTONIC and CLOCK_BOOTTIME
 
 ---
 
@@ -321,11 +322,11 @@ class: nord-dark, center, middle
 
 class: nord-dark, middle, left
 
-#### Directive on Management of Information Technology
+#### Directive on Service and Digital
 ##### Mandatory Procedures for Enterprise Architecture Assessment
 
 
-### C.2.3.12.4 Use distributed architectures
+### A.2.3.12.4 Use distributed architectures
 
 ---
 
@@ -400,25 +401,25 @@ kubectl apply -f .
 class: nord-dark, middle, left
 
 ```yaml
-aapiversion: apps/v1
-akind: deployment
-ametadata:
-a  labels:
-a    app: helloworld
-a  name: helloworld
-aspec:
-a  replicas: 1
-a  selector:
-a    matchlabels:
-a      app: helloworld
-a  template:
-a    metadata:
-a      labels:
-a        app: helloworld
-a    spec:
-a      containers:
-a      - image: mikewilliamson/helloworld
-a        name: helloworld
+apiversion: apps/v1
+kind: deployment
+metadata:
+  labels:
+    app: helloworld
+  name: helloworld
+spec:
+  replicas: 1
+  selector:
+    matchlabels:
+      app: helloworld
+  template:
+    metadata:
+      labels:
+        app: helloworld
+    spec:
+      containers:
+      - image: mikewilliamson/helloworld
+        name: helloworld
 ```
 
 ---
@@ -426,23 +427,23 @@ a        name: helloworld
 class: nord-dark, middle, left
 
 ```yaml
-aapiVersion: v1
-akind: Service
-ametadata:
-a  labels:
-a    app: helloworld
-a  name: helloworld
-aspec:
-a  ports:
-a  - name: 80-3000
-a    port: 80
-a    protocol: TCP
-a    targetPort: 3000
-a  selector:
-a    app: helloworld
-a  type: LoadBalancer
-astatus:
-a  loadBalancer: {}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: helloworld
+  name: helloworld
+spec:
+  ports:
+  - name: 80-3000
+    port: 80
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: helloworld
+  type: LoadBalancer
+status:
+  loadBalancer: {}
 ```
 ---
 
@@ -498,10 +499,6 @@ class: nord-dark, middle, center
 
     <script src="js/remark.min.js"></script>
     <script>
-      var targetTextArea = document.getElementById("source");
-      var lines = targetTextArea.innerHTML.split("\n");
-      targetTextArea.innerHTML = lines.map(line => line.replace(/^(?!\s+[\-|0-9])\s+/, "")).join("\n");
-
       var slideshow = remark.create({
         ratio: "16:9", // window ratio
         // arta, ascetic, dark, default, far, github, googlecode, idea,
@@ -518,20 +515,6 @@ class: nord-dark, middle, center
           click: false // Allow the mouse to click on the left or right side of the screen to turn back and forth
         }
       });
-
-
-      function isFullScreen() {
-        return window.fullScreen || (window.innerWidth == screen.width && window.innerHeight == screen.height);
-      }
-
-      window.addEventListener("resize", () => {
-        if (isFullScreen()) {
-          document.body.style["background-color"] = "#000";
-        } else {
-          document.body.style["background-color"] = "#d7d8d2";
-        }
-      });
-
 
     </script>
   </body>
