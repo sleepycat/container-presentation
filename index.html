@@ -223,7 +223,7 @@ class: nord-dark, left, middle
 class: nord-dark, left, middle
 
 ```bash
-$ docker pull ubuntu
+[mike@ouroboros ~]$ docker pull ubuntu
 Using default tag: latest
 latest: Pulling from library/ubuntu
 5bed26d33875: Pull complete
@@ -234,7 +234,7 @@ Digest: sha256:bec5a2727be7fff3d308193cfde3491f8fba1a2ba392b7546b43a051853a341d
 Status: Downloaded newer image for ubuntu:latest
 docker.io/library/ubuntu:latest
 
-$ docker run -it ubuntu
+[mike@ouroboros ~]$ docker run -it ubuntu
 root@f0e2650b7332:/# ps
     PID TTY          TIME CMD
       1 pts/0    00:00:00 bash
@@ -343,11 +343,9 @@ class: nord-dark, left, middle
 ```bash
 # create a cluster
 $ gcloud beta container clusters create \
-   --release-channel=stable \
    --region=northamerica-northeast1 \
    --num-nodes=1 \
-   --machine-type=g1-small \
-   --image-type=COS_CONTAINERD \
+   --release-channel=stable \
    helloworld
 
 # Create a deployment for an image:
@@ -360,13 +358,6 @@ $ kubectl expose deployment/helloworld --type LoadBalancer --port 80 --target-po
 
 ---
 
-class: nord-dark, center, middle
-
-### Minimum Viable Kubernetes: the result
-
-.k8slb[![](images/kubernetes-with-load-balancer.svg)]
-
----
 
 class: nord-dark, left, middle
 
@@ -380,6 +371,14 @@ helloworld   LoadBalancer   10.15.252.125   34.95.1.130   80:30021/TCP   10m
 $ curl 34.95.1.130
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name="theme-color" content="#000000"><link rel="manifest" href="/manifest.json"><link rel="shortcut icon" href="/favicon.ico"><title>React App</title><link href="/static/css/main.c17080f1.css" rel="stylesheet"></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div><script type="text/javascript" src="/static/js/main.61911c33.js"></script></body></html>
 ```
+
+---
+
+class: nord-dark, center, middle
+
+### Minimum Viable Kubernetes: the result
+
+.k8slb[![](images/kubernetes-with-load-balancer.svg)]
 
 ---
 
