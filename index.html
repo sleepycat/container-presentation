@@ -456,11 +456,9 @@ class: nord-dark, left, middle
 * dev/test/prod is just `kubectl apply`
 * AWS/Azure/GCP is just `kubectl apply`
 * Basic Scaling: `replicas: 1` > `replicas: 2`
-* Advanced Scaling: dynamic infrastructure
-* Self healing: always drive towards "desired state"
-* Rollback: `myimage:v2` > `myimage:v1`
-* Patch:    `myimage:v2` > `myimage:v3`
 * Deploy:   `myimage:v3` > `myimage:v4`
+* Rollback: `myimage:v4` > `myimage:v3`
+* Patch:    `myimage:v4` > `myimage:v5`
 
 ---
 
